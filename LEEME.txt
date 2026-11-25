@@ -1,0 +1,46 @@
+# Bitácora Inteligente de Trámites
+
+## Archivos
+- `Code.gs`: backend, configuración, seguridad, datos y API.
+- `Index.html`: estructura principal.
+- `Styles.html`: estilos.
+- `JavaScript.html`: interacción del frontend.
+
+## Instalación
+1. Crea un Google Sheets para la base principal.
+2. Abre Extensiones > Apps Script.
+3. Crea los archivos anteriores con los mismos nombres y pega su contenido.
+4. En `Code.gs`, sección `01 CONFIGURACIÓN`, sustituye:
+   - `MAIN_SPREADSHEET_ID`
+   - `EXTERNAL_SPREADSHEET_ID`
+   - `EXTERNAL_SHEET_NAME`
+5. Guarda.
+6. Ejecuta `configurarSistema()` desde el editor y autoriza los permisos.
+7. En `crearPrimerAdministrador()`, cambia usuario, nombre y contraseña de ejemplo. Usa una contraseña larga y única.
+8. Ejecuta `crearPrimerAdministrador()` una sola vez desde el editor.
+9. Implementa como aplicación web. Ejecutar como: tú. Acceso: usuarios autorizados según la política de tu organización.
+10. Comparte el enlace de la aplicación únicamente con los usuarios autorizados.
+
+## Esquema de la base externa
+- Columna R: CURP.
+- Columna T: nombre completo.
+- Se extraen S, O, P y M.
+- La fila 1 se considera encabezado y los datos comienzan en fila 2.
+
+## Seguridad y limitaciones de esta primera entrega
+- Cada endpoint de datos valida el token en servidor.
+- La sesión expira a los 60 minutos desde su creación; no hay renovación silenciosa.
+- A los 55 minutos el frontend muestra aviso.
+- La contraseña se deriva con PBKDF2-HMAC-SHA256, sal aleatoria y secreto de servidor.
+- No existe recuperación automática de contraseña en esta entrega.
+- El comparador por nombre examina hasta `NAME_SCAN_MAX_ROWS`; si la base excede ese límite, el resultado indica que puede estar incompleto.
+- Los 25 resultados son un máximo de presentación; el comparador continúa contando coincidencias dentro del límite configurado.
+- El aviso de cinco minutos es visual. El backend mantiene el vencimiento estricto en el minuto 60.
+- Los borradores no se envían al servidor ni se conservan al cerrar la pestaña en esta versión.
+
+## Antes de producción
+1. Revisar que los permisos de despliegue correspondan a la política institucional.
+2. Definir la política de alta, baja y restablecimiento de usuarios.
+3. Probar el tiempo de ejecución del comparador con el tamaño real de la hoja externa.
+4. Configurar copias de seguridad y retención de datos.
+5. Revisar privacidad y autorización para CURP, teléfono y correo.
