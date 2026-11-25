@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#14283d">
+  <meta name="description" content="Bitácora inteligente de trámites">
+  <title>Bitácora Inteligente de Trámites</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/config.js"></script>
+  <script defer src="js/api.js"></script>
+  <script defer src="js/app.js"></script>
+</head>
+<body>
+<div id="loginView" class="login-shell">
+    <div class="login-card">
+      <div class="brand-mark">BT</div>
+      <p class="eyebrow">CONTROL Y SEGUIMIENTO</p>
+      <h1>Bitácora Inteligente</h1>
+      <p class="muted">Inicia sesión para continuar</p>
+      <form id="loginForm">
+        <label>Usuario</label>
+        <input id="loginUser" type="text" autocomplete="username" required>
+        <label>Contraseña</label>
+        <input id="loginPassword" type="password" autocomplete="current-password" required>
+        <button class="btn primary full" type="submit">Iniciar sesión</button>
+        <p id="loginError" class="error"></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="appView" class="app hidden">
+    <aside class="sidebar">
+      <div class="side-brand"><div class="brand-mark small">BT</div><div><b>BITÁCORA</b><small>Gestión de trámites</small></div></div>
+      <nav>
+        <button class="nav-item active" data-view="dashboard">▦ <span>Dashboard</span></button>
+        <button class="nav-item" data-view="registro">＋ <span>Nueva atención</span></button>
+        <button class="nav-item" data-view="personas">♙ <span>Personas y expedientes</span></button>
+        <button class="nav-item" data-view="comparador">⌕ <span>Comparador</span></button>
+        <button class="nav-item" data-view="alertas">⚑ <span>Alertas</span></button>
+      </nav>
+      <div class="side-bottom"><small id="sideUser"></small><button id="logoutBtn" class="btn ghost full">Cerrar sesión</button></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><p class="eyebrow">SISTEMA DE ATENCIÓN</p><h2 id="pageTitle">Dashboard</h2></div>
+        <div class="user-pill"><span class="online-dot"></span><span id="topUser">Usuario</span></div>
+      </header>
+
+      <section id="view-dashboard" class="view">
+        <div class="welcome"><div><h2>Resumen de actividad</h2><p>Indicadores de la bitácora.</p></div><span id="todayLabel"></span></div>
+        <div class="stats-grid">
+          <article class="stat-card"><span>Atenciones de hoy</span><strong id="statToday">0</strong></article>
+          <article class="stat-card"><span>Procesos abiertos</span><strong id="statOpen">0</strong></article>
+          <article class="stat-card"><span>Alertas pendientes</span><strong id="statAlerts">0</strong></article>
+          <article class="stat-card"><span>Trámites concluidos</span><strong id="statDone">0</strong></article>
+        </div>
+        <article class="panel"><h3>Bitácora de atención</h3><p class="muted">Registra cada atención y consulta los antecedentes de las personas desde su proceso.</p><button class="btn primary" data-go="registro">Registrar nueva atención</button></article>
+      </section>
+
+      <section id="view-registro" class="view hidden">
+        <div class="section-head"><div><h2>Nueva atención</h2><p class="muted">Los datos de captura se validan nuevamente en el servidor.</p></div></div>
+        <form id="attentionForm" class="panel form-grid">
+          <div class="field"><label>Fecha de registro</label><input id="regDate" type="date" disabled></div>
+          <div class="field"><label>Capturista</label><input id="regUser" type="text" disabled></div>
+          <div class="field"><label>CURP</label><input id="curp" type="text" maxlength="18" placeholder="18 caracteres" autocomplete="off"></div>
+          <div class="field"><label>Nombre completo *</label><input id="fullName" type="text" required autocomplete="name"></div>
+          <div class="field"><label>Trámite *</label><select id="tramite" required></select></div>
+          <div class="field"><label>Teléfono</label><input id="phone" type="tel" inputmode="tel" maxlength="20"></div>
+          <div class="field"><label>Correo electrónico</label><input id="email" type="email" autocomplete="email"></div>
+          <div class="field"><label>Estatus *</label><select id="status" required></select></div>
+          <div class="field"><label>Folio de trámite</label><input id="folio" type="text"></div>
+          <div class="field"><label>Fecha de seguimiento</label><input id="followDate" type="date"></div>
+          <div class="field full-span"><label>Observaciones</label><textarea id="notes" rows="4" placeholder="Describe la atención..."></textarea></div>
+          <div class="form-actions full-span"><button type="reset" class="btn secondary">Limpiar</button><button type="submit" class="btn primary">Guardar atención</button></div>
+          <p id="registerMessage" class="full-span"></p>
+        </form>
+      </section>
+
+      <section id="view-personas" class="view hidden"><div class="panel"><h2>Personas y expedientes</h2><p class="muted">CURP exacta o nombre similar. Se muestran hasta 25 personas sugeridas.</p><div class="search-row"><select id="personType"><option value="CURP">CURP exacta</option><option value="NOMBRE">Nombre similar</option></select><input id="personQuery" type="text" placeholder="CURP o nombre completo"><button id="personSearch" class="btn primary">Buscar</button></div><p id="personMessage" class="muted"></p><div id="personResults"></div></div><div id="personFile" class="panel hidden"><h2 id="personName"></h2><p id="personCurp" class="muted"></p><p id="personSummary"></p><h3>Historial de atenciones</h3><div id="personHistory"></div><h3>Alertas</h3><div id="personAlerts"></div></div></section>
+
+<section id="view-comparador" class="view hidden">
+        <div class="panel">
+          <h2>Comparador de base externa</h2><p class="muted">CURP exacta o nombre aproximado. Se recuperan las columnas S, O, P y M.</p>
+          <div class="search-row"><select id="compareType"><option value="CURP">Buscar por CURP exacta</option><option value="NOMBRE">Buscar por nombre</option></select><input id="compareQuery" type="text" placeholder="Escribe CURP o nombre"><button id="compareBtn" class="btn primary">Buscar</button></div>
+          <p id="compareMessage" class="muted"></p>
+          <div class="table-wrap"><table><thead><tr><th>Fila</th><th>Columna S</th><th>Columna O</th><th>Columna P</th><th>Columna M</th></tr></thead><tbody id="compareResults"><tr><td colspan="5" class="muted">Realiza una búsqueda.</td></tr></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="view-alertas" class="view hidden">
+        <div class="panel"><h2>Alertas pendientes</h2><p class="muted">Revisa y resuelve alertas de seguimiento y posibles duplicidades.</p><div id="alertsList" class="alerts-list"></div></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="sessionWarning" class="modal hidden">
+    <div class="modal-card"><div class="warning-icon">!</div><h2>Tu sesión está por vencer</h2><p>Quedan cinco minutos para terminar. Guarda la información y prepárate para iniciar sesión nuevamente.</p><button id="warningClose" class="btn primary full">Entendido</button></div>
+  </div>
+  <div id="toast" class="toast"></div>
+</body>
+</html>
