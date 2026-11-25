@@ -1,46 +1,40 @@
-# Bitácora Inteligente de Trámites
+BITÁCORA INTELIGENTE — EDICIÓN GITHUB PAGES + API HTTP
 
-## Archivos
-- `Code.gs`: backend, configuración, seguridad, datos y API.
-- `Index.html`: estructura principal.
-- `Styles.html`: estilos.
-- `JavaScript.html`: interacción del frontend.
+ARCHIVOS
+- index.html: frontend estático para GitHub Pages (CSS y JS integrados para simplificar publicación).
+- Code.gs: backend de Apps Script con doPost JSON, autenticación, operaciones y expediente.
+- worker.js: Cloudflare Worker, proxy HTTP y CORS.
 
-## Instalación
-1. Crea un Google Sheets para la base principal.
-2. Abre Extensiones > Apps Script.
-3. Crea los archivos anteriores con los mismos nombres y pega su contenido.
-4. En `Code.gs`, sección `01 CONFIGURACIÓN`, sustituye:
-   - `MAIN_SPREADSHEET_ID`
-   - `EXTERNAL_SPREADSHEET_ID`
-   - `EXTERNAL_SHEET_NAME`
-5. Guarda.
-6. Ejecuta `configurarSistema()` desde el editor y autoriza los permisos.
-7. En `crearPrimerAdministrador()`, cambia usuario, nombre y contraseña de ejemplo. Usa una contraseña larga y única.
-8. Ejecuta `crearPrimerAdministrador()` una sola vez desde el editor.
-9. Implementa como aplicación web. Ejecutar como: tú. Acceso: usuarios autorizados según la política de tu organización.
-10. Comparte el enlace de la aplicación únicamente con los usuarios autorizados.
+A. GOOGLE APPS SCRIPT
+1. Crea/abre el Apps Script vinculado o independiente.
+2. Pega Code.gs completo. Configura IDs de Sheets en CFG, sección 01.
+3. Ejecuta configurarSistema() y autoriza.
+4. Edita crearPrimerAdministrador() con usuario, nombre y contraseña robusta; ejecuta una vez.
+5. Implementar > Nueva implementación > Aplicación web. Ejecutar como: tú. Quién tiene acceso: según tu política; el Worker requiere poder llamar /exec sin iniciar sesión Google, por lo general “Cualquier persona”. La protección de datos la realiza la autenticación propia del backend. Copia URL /exec.
 
-## Esquema de la base externa
-- Columna R: CURP.
-- Columna T: nombre completo.
-- Se extraen S, O, P y M.
-- La fila 1 se considera encabezado y los datos comienzan en fila 2.
+B. CLOUDFLARE WORKER
+1. Crea un Worker y pega worker.js.
+2. En Settings > Variables and Secrets crea: GAS_EXEC_URL = URL completa /exec (como secreto); ALLOWED_ORIGIN = origen exacto GitHub Pages, por ejemplo https://usuario.github.io (o https://usuario.github.io/repositorio si el Worker recibe ese Origin, normalmente Origin solo contiene https://usuario.github.io).
+3. Publica y copia URL del Worker.
 
-## Seguridad y limitaciones de esta primera entrega
-- Cada endpoint de datos valida el token en servidor.
-- La sesión expira a los 60 minutos desde su creación; no hay renovación silenciosa.
-- A los 55 minutos el frontend muestra aviso.
-- La contraseña se deriva con PBKDF2-HMAC-SHA256, sal aleatoria y secreto de servidor.
-- No existe recuperación automática de contraseña en esta entrega.
-- El comparador por nombre examina hasta `NAME_SCAN_MAX_ROWS`; si la base excede ese límite, el resultado indica que puede estar incompleto.
-- Los 25 resultados son un máximo de presentación; el comparador continúa contando coincidencias dentro del límite configurado.
-- El aviso de cinco minutos es visual. El backend mantiene el vencimiento estricto en el minuto 60.
-- Los borradores no se envían al servidor ni se conservan al cerrar la pestaña en esta versión.
+C. GITHUB PAGES
+1. En index.html sustituye API_URL por la URL workers.dev publicada.
+2. Sube index.html al repositorio. Activa GitHub Pages desde Settings > Pages.
+3. Abre el sitio, inicia sesión y prueba registro, comparador, alertas y expedientes.
 
-## Antes de producción
-1. Revisar que los permisos de despliegue correspondan a la política institucional.
-2. Definir la política de alta, baja y restablecimiento de usuarios.
-3. Probar el tiempo de ejecución del comparador con el tamaño real de la hoja externa.
-4. Configurar copias de seguridad y retención de datos.
-5. Revisar privacidad y autorización para CURP, teléfono y correo.
+PROTOCOLO HTTP
+El navegador hace POST JSON al Worker. El Worker valida Origin y reenvía el cuerpo como text/plain a Apps Script /exec. Apps Script procesa doPost(e) y responde JSON. El navegador no llama google.script.run ni conoce la URL /exec.
+
+ACCIONES API
+login, logout, bootstrap, registrarAtencion, compararBase, alertas, resolverAlerta, agregarTramite, crearUsuario, buscarPersonas, obtenerExpediente.
+
+SEGURIDAD Y AVISOS IMPORTANTES
+- La contraseña se deriva en Apps Script con PBKDF2-HMAC-SHA256, sal individual y pepper guardado en Script Properties.
+- El token se valida en el backend en cada operación protegida. No se guarda en localStorage/sessionStorage.
+- CORS/Origin no es autenticación: un cliente no navegador puede falsificar Origin. La autenticación real es el token y los permisos del servidor.
+- No compartas el Worker como si fuera una barrera de identidad; protege la API con tokens, límites de uso y monitoreo. Considera añadir rate limiting y un secreto de servidor Worker->GAS si se requiere endurecer el acceso.
+- La sesión actual vence a los 60 min. El aviso de 5 min es visual; el backend actual no permite completar operaciones después del minuto 60. Para cumplir una gracia real de 5 minutos hay que implementar una sesión en estado de gracia limitada a guardar el borrador/captura.
+- La app contiene datos personales (CURP, teléfono, correo): restringe el acceso al sitio y al Worker y aplica las políticas institucionales de privacidad.
+
+PRUEBA DE CONECTIVIDAD
+Abre la URL del Worker desde el sitio de GitHub Pages. Un GET devolverá 405 por diseño; la prueba funcional es iniciar sesión desde la interfaz.
