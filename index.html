@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#14283d">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.workers.dev; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+  <meta name="referrer" content="no-referrer">
   <meta name="description" content="Bitácora inteligente de trámites">
   <title>Bitácora Inteligente de Trámites</title>
   <link rel="stylesheet" href="css/estilos.css">
@@ -24,7 +26,7 @@
         <label>Contraseña</label>
         <input id="loginPassword" type="password" autocomplete="current-password" required>
         <button class="btn primary full" type="submit">Iniciar sesión</button>
-        <p id="loginError" class="error"></p>
+        <p id="loginError" class="error" role="alert"></p>
       </form>
     </div>
   </div>
@@ -38,6 +40,7 @@
         <button class="nav-item" data-view="personas">♙ <span>Personas y expedientes</span></button>
         <button class="nav-item" data-view="comparador">⌕ <span>Comparador</span></button>
         <button class="nav-item" data-view="alertas">⚑ <span>Alertas</span></button>
+        <button id="navAdmin" class="nav-item hidden" data-view="admin">⚙ <span>Administración</span></button>
       </nav>
       <div class="side-bottom"><small id="sideUser"></small><button id="logoutBtn" class="btn ghost full">Cerrar sesión</button></div>
     </aside>
@@ -64,17 +67,17 @@
         <form id="attentionForm" class="panel form-grid">
           <div class="field"><label>Fecha de registro</label><input id="regDate" type="date" disabled></div>
           <div class="field"><label>Capturista</label><input id="regUser" type="text" disabled></div>
-          <div class="field"><label>CURP</label><input id="curp" type="text" maxlength="18" placeholder="18 caracteres" autocomplete="off"></div>
-          <div class="field"><label>Nombre completo *</label><input id="fullName" type="text" required autocomplete="name"></div>
+          <div class="field"><label>CURP</label><input id="curp" type="text" maxlength="18" placeholder="18 caracteres" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+          <div class="field"><label>Nombre completo *</label><input id="fullName" type="text" required maxlength="150" autocomplete="name"></div>
           <div class="field"><label>Trámite *</label><select id="tramite" required></select></div>
           <div class="field"><label>Teléfono</label><input id="phone" type="tel" inputmode="tel" maxlength="20"></div>
           <div class="field"><label>Correo electrónico</label><input id="email" type="email" autocomplete="email"></div>
           <div class="field"><label>Estatus *</label><select id="status" required></select></div>
-          <div class="field"><label>Folio de trámite</label><input id="folio" type="text"></div>
+          <div class="field"><label>Folio de trámite</label><input id="folio" type="text" maxlength="60"></div>
           <div class="field"><label>Fecha de seguimiento</label><input id="followDate" type="date"></div>
-          <div class="field full-span"><label>Observaciones</label><textarea id="notes" rows="4" placeholder="Describe la atención..."></textarea></div>
+          <div class="field full-span"><label>Observaciones</label><textarea id="notes" rows="4" maxlength="2000" placeholder="Describe la atención..."></textarea></div>
           <div class="form-actions full-span"><button type="reset" class="btn secondary">Limpiar</button><button type="submit" class="btn primary">Guardar atención</button></div>
-          <p id="registerMessage" class="full-span"></p>
+          <p id="registerMessage" class="full-span" role="status" aria-live="polite"></p>
         </form>
       </section>
 
@@ -86,6 +89,26 @@
           <div class="search-row"><select id="compareType"><option value="CURP">Buscar por CURP exacta</option><option value="NOMBRE">Buscar por nombre</option></select><input id="compareQuery" type="text" placeholder="Escribe CURP o nombre"><button id="compareBtn" class="btn primary">Buscar</button></div>
           <p id="compareMessage" class="muted"></p>
           <div class="table-wrap"><table><thead><tr><th>Fila</th><th>Columna S</th><th>Columna O</th><th>Columna P</th><th>Columna M</th></tr></thead><tbody id="compareResults"><tr><td colspan="5" class="muted">Realiza una búsqueda.</td></tr></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="view-admin" class="view hidden">
+        <div class="admin-grid">
+          <form id="userForm" class="panel form-grid" autocomplete="off">
+            <div class="full-span"><h2>Nuevo usuario</h2><p class="muted">La contraseña debe tener al menos 12 caracteres.</p></div>
+            <div class="field"><label for="newUser">Usuario *</label><input id="newUser" type="text" required minlength="3" maxlength="40" pattern="[a-z0-9._-]+" title="Minúsculas, números, punto, guion" autocomplete="off"></div>
+            <div class="field"><label for="newUserName">Nombre completo *</label><input id="newUserName" type="text" required minlength="3" maxlength="100" autocomplete="off"></div>
+            <div class="field"><label for="newUserPass">Contraseña *</label><input id="newUserPass" type="password" required minlength="12" autocomplete="new-password"></div>
+            <div class="field"><label for="newUserRole">Rol *</label><select id="newUserRole"><option value="USUARIO">USUARIO</option><option value="RESP">RESP</option><option id="roleAdminOption" value="ADMIN">ADMIN</option></select></div>
+            <div class="form-actions full-span"><button type="submit" class="btn primary">Crear usuario</button></div>
+            <p id="userMessage" class="full-span" role="status" aria-live="polite"></p>
+          </form>
+          <form id="tramiteForm" class="panel" autocomplete="off">
+            <h2>Nuevo tipo de trámite</h2><p class="muted">Aparecerá en el formulario de atención.</p>
+            <div class="field"><label for="newTramite">Nombre *</label><input id="newTramite" type="text" required minlength="2" maxlength="80"></div>
+            <div class="form-actions"><button type="submit" class="btn primary">Agregar trámite</button></div>
+            <p id="tramiteMessage" role="status" aria-live="polite"></p>
+          </form>
         </div>
       </section>
 
