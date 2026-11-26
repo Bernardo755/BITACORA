@@ -1,10 +1,8 @@
 /* ============================================================
-   CONFIGURACIÓN PÚBLICA DEL FRONTEND
-   Coloca aquí la URL publicada de tu Cloudflare Worker.
-   No coloques aquí la URL /exec de Apps Script ni secretos.
+   CONFIGURACIÓN DEL FRONTEND
+   Pega aquí la URL de tu implementación de Apps Script (termina en /exec).
+   Apps Script > Implementar > Administrar implementaciones > copiar URL.
    ============================================================ */
 window.BITACORA_CONFIG = Object.freeze({
-  API_URL: 'https://script.google.com/macros/s/AKfycby0AgHC_Uv-lQm-qnnOG_HaLVBlEGF-PC2O2upBHfvRX10vbIJDdFATuTsYp09KR1cZ/exec'
+  API_URL: 'https://script.google.com/macros/s/AKfycby8RZXMe3vNTL3qKqc8q7jSeVugRZ5vksQGQCUVFbF3kk6V4ddhAmWco2WRpVk_iIu9/exec'
 });
- 
-
