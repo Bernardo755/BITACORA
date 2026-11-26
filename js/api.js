@@ -20,8 +20,11 @@ const API_MAP = {
 };
 
 async function server(action, ...args) {
-  if (!API_URL || API_URL.includes('TU-WORKER')) {
-    throw new Error('Configura la URL de Cloudflare Worker en js/config.js.');
+  if (!window.BITACORA_CONFIG) {
+    throw new Error('No se cargó js/config.js. Verifica que exista en la carpeta js/ del repositorio y recarga con Ctrl+F5.');
+  }
+  if (!API_URL || API_URL.includes('TU-WORKER') || !/^https:\/\/[^\s/]+/.test(API_URL)) {
+    throw new Error('La URL del Worker en js/config.js es inválida o sigue con el valor de ejemplo. Debe ser como https://nombre.tu-subdominio.workers.dev');
   }
   const build = API_MAP[action];
   if (!build) throw new Error('Acción de frontend no mapeada: ' + action);
