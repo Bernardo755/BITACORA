@@ -4,5 +4,5 @@
    Apps Script > Implementar > Administrar implementaciones > copiar URL.
    ============================================================ */
 window.BITACORA_CONFIG = Object.freeze({
-  API_URL: 'https://script.google.com/macros/s/AKfycbxbBeduDSg7k_PloOOrg10wqnlj7Fh0oaRh4dpDPjeTcYcoJQnwRFb74sNorxGfI7uV/exec'
+  API_URL: 'https://script.google.com/macros/s/AKfycbwNqBLHa1UH9rHhxb8_QHQL2POGwW_EtITwutytSGALNawEuhZsmg8tsMgq933VyPlu/exec'
 });
