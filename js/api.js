@@ -16,6 +16,7 @@ const API_MAP = {
   apiResolveAlert:   (a) => ({accion:'resolverAlerta', token:a[0], id:a[1]}),
   apiAddTramite:     (a) => ({accion:'agregarTramite', token:a[0], name:a[1]}),
   apiCreateUser:     (a) => ({accion:'crearUsuario', token:a[0], data:a[1]}),
+  apiRegistros:      (a) => ({accion:'consultarRegistros', token:a[0], hoja:a[1], opts:a[2]}),
   buscarPersonas:    (a) => ({accion:'buscarPersonas', token:a[0], query:a[1], type:a[2]}),
   obtenerExpediente: (a) => ({accion:'obtenerExpediente', token:a[0], personId:a[1]})
 };
