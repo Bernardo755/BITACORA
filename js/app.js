@@ -9,7 +9,7 @@
 // ---------- A. Estado y utilidades ----------
 const State = {token:null,user:null,expiresAt:null,warningAt:null,warningShown:false,catalogs:null,dirty:false};
 const $ = id => document.getElementById(id);
-const TITLES = {dashboard:'Dashboard',registro:'Nueva atención',personas:'Personas y expedientes',comparador:'Comparador',alertas:'Alertas',admin:'Administración'};
+const TITLES = {dashboard:'Dashboard',registro:'Nueva atención',personas:'Personas y expedientes',comparador:'Comparador',alertas:'Alertas',registros:'Registros',admin:'Administración'};
 
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function localDate(d=new Date()){const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
@@ -41,6 +41,7 @@ function showView(name){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
   $('pageTitle').textContent=TITLES[name]||name;
   if(name==='alertas')loadAlerts();
+  if(name==='registros'&&!Reg.loaded)loadRegistros(1);
 }
 document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
 document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.go)));
@@ -63,6 +64,7 @@ async function startApp(auth){
 async function loadBootstrap(){
   const data=await server('apiBootstrap',State.token);
   State.catalogs=data.catalogs;
+  fillRegSheets(data.vistas||[]);
   $('statToday').textContent=data.dashboard.todayCount;
   $('statOpen').textContent=data.dashboard.openCount;
   $('statAlerts').textContent=data.dashboard.pendingAlerts;
@@ -89,7 +91,8 @@ async function endSession(message){
   if(token){try{await server('logout',token);}catch(e){}}
   $('appView').classList.add('hidden');$('loginView').classList.remove('hidden');$('sessionWarning').classList.add('hidden');
   $('loginError').textContent=message||'La sesión terminó. Inicia sesión nuevamente.';
-  ['personResults','personMessage','compareMessage','alertsList'].forEach(i=>$(i).textContent='');
+  ['personResults','personMessage','compareMessage','alertsList','regMessage'].forEach(i=>$(i).textContent='');
+  $('regHead').innerHTML='';$('regBody').innerHTML='';Reg.loaded=false;
   $('personFile').classList.add('hidden');
 }
 $('logoutBtn').addEventListener('click',()=>endSession('Sesión cerrada.'));
@@ -161,6 +164,36 @@ async function openPerson(id){
     $('personFile').scrollIntoView({behavior:'smooth'});
   });
 }
+
+// ---------- Registros (consulta de hojas por rol) ----------
+const Reg={page:1,pages:1,loaded:false};
+function fillRegSheets(vistas){
+  const sel=$('regSheet'),keep=sel.value;
+  sel.innerHTML=vistas.map(v=>`<option value="${escapeHtml(v.id)}">${escapeHtml(v.label)}</option>`).join('');
+  if(vistas.some(v=>v.id===keep))sel.value=keep;
+}
+async function loadRegistros(page=1){
+  const btn=$('regSearch');setBusy(btn,true,'Consultando...');
+  $('regMessage').textContent='Cargando...';
+  await guarded(async()=>{
+    const d=await server('apiRegistros',State.token,$('regSheet').value,{page:page,size:Number($('regSize').value),query:$('regQuery').value});
+    Reg.page=d.page;Reg.pages=d.pages;Reg.loaded=true;
+    $('regHead').innerHTML='<tr>'+d.headers.map(h=>`<th>${escapeHtml(h.replace(/_/g,' '))}</th>`).join('')+'</tr>';
+    $('regBody').innerHTML=d.rows.length
+      ?d.rows.map(r=>'<tr>'+r.map(c=>`<td title="${escapeHtml(c)}">${escapeHtml(c)}</td>`).join('')+'</tr>').join('')
+      :`<tr><td colspan="${d.headers.length}" class="muted">Sin registros.</td></tr>`;
+    $('regMessage').textContent=d.total+' registro(s) · Página '+d.page+' de '+Math.max(d.pages,1)
+      +(d.truncated?' · Búsqueda limitada a los '+d.scanned+' registros más recientes.':'');
+    $('regPrev').disabled=d.page<=1;$('regNext').disabled=d.page>=d.pages;
+  },err=>{$('regMessage').textContent=err.message;});
+  setBusy(btn,false);
+}
+$('regSearch').addEventListener('click',()=>loadRegistros(1));
+$('regSheet').addEventListener('change',()=>{$('regQuery').value='';loadRegistros(1);});
+$('regSize').addEventListener('change',()=>loadRegistros(1));
+$('regPrev').addEventListener('click',()=>loadRegistros(Math.max(1,Reg.page-1)));
+$('regNext').addEventListener('click',()=>loadRegistros(Reg.page+1));
+onEnter($('regQuery'),()=>loadRegistros(1));
 
 // ---------- G. Alertas ----------
 async function loadAlerts(){
