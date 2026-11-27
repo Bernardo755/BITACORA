@@ -7,7 +7,7 @@
   <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Bitácora inteligente de trámites">
-  <title>Bitácora de Trámites</title>
+  <title>Bitácora Trámites</title>
   <link rel="stylesheet" href="css/estilos.css">
   <script src="js/config.js"></script>
   <script defer src="js/api.js"></script>
@@ -40,6 +40,7 @@
         <button class="nav-item" data-view="personas">♙ <span>Personas y expedientes</span></button>
         <button class="nav-item" data-view="comparador">⌕ <span>Comparador</span></button>
         <button class="nav-item" data-view="alertas">⚑ <span>Alertas</span></button>
+        <button class="nav-item" data-view="registros">☰ <span>Registros</span></button>
         <button id="navAdmin" class="nav-item hidden" data-view="admin">⚙ <span>Administración</span></button>
       </nav>
       <div class="side-bottom"><small id="sideUser"></small><button id="logoutBtn" class="btn ghost full">Cerrar sesión</button></div>
@@ -109,6 +110,21 @@
             <div class="form-actions"><button type="submit" class="btn primary">Agregar trámite</button></div>
             <p id="tramiteMessage" role="status" aria-live="polite"></p>
           </form>
+        </div>
+      </section>
+
+      <section id="view-registros" class="view hidden">
+        <div class="panel">
+          <h2>Consulta de registros</h2><p class="muted">Más recientes primero. Solo ves las hojas permitidas para tu rol.</p>
+          <div class="reg-controls">
+            <select id="regSheet" aria-label="Hoja"></select>
+            <input id="regQuery" type="text" maxlength="100" placeholder="Buscar texto en la hoja (nombre, CURP, folio...)">
+            <select id="regSize" aria-label="Filas por página"><option value="25">25</option><option value="50" selected>50</option><option value="100">100</option></select>
+            <button id="regSearch" class="btn primary">Consultar</button>
+          </div>
+          <p id="regMessage" class="muted" role="status" aria-live="polite"></p>
+          <div class="table-wrap"><table class="reg-table"><thead id="regHead"></thead><tbody id="regBody"><tr><td class="muted">Elige una hoja y consulta.</td></tr></tbody></table></div>
+          <div class="pager"><button id="regPrev" class="btn secondary" disabled>← Anterior</button><button id="regNext" class="btn secondary" disabled>Siguiente →</button></div>
         </div>
       </section>
 
